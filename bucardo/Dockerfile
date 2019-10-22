@@ -20,4 +20,5 @@ RUN \
   && su - bucardo  -c 'bucardo show all || :' \
   && service postgresql stop
 
-ENTRYPOINT [ "bash", "-c", "service postgresql start && exec $0 $@" ]
+COPY docker-entrypoint.sh /usr/local/bin
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

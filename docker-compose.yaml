@@ -7,18 +7,45 @@ services:
     ports:
       - 5432
     environment:
-      POSTGRES_USER: postgres
+      POSTGRES_USER:     postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: app
+      POSTGRES_DB:       app
 
   postgres11:
     image: postgres:11-alpine
     ports:
       - 5432
     environment:
-      POSTGRES_USER: postgres
+      POSTGRES_USER:     postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: app
+      POSTGRES_DB:       app
 
   bucardo:
     build: bucardo
+    command:
+      - bash
+      - -c
+      - |
+        cat <<EOF | tee /etc/postgresql-common/pg_service.conf
+        [a]
+        host=$$PG_URL_A
+        user=$$PG_USER
+        password=$$PG_PASS
+        dbname=$$PG_DB
+
+        [b]
+        host=$$PG_URL_B
+        user=$$PG_USER
+        password=$$PG_PASS
+        dbname=$$PG_DB
+        EOF
+
+        psql service=a -c 'CREATE EXTENSION plperl;'
+        psql service=b -c 'CREATE EXTENSION plperl;'
+        bash
+    environment:
+      PG_URL_A: postgres9
+      PG_URL_B: postgres11
+      PG_USER:  postgres
+      PG_PASS:  postgres
+      PG_DB:    app
