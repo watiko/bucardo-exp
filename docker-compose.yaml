@@ -3,7 +3,7 @@ version: '3.7'
 services:
 
   postgres9:
-    image: postgres:9.6-alpine
+    build: postgres9
     ports:
       - 5432
     environment:
@@ -12,7 +12,7 @@ services:
       POSTGRES_DB:       app
 
   postgres11:
-    image: postgres:11-alpine
+    build: postgres11
     ports:
       - 5432
     environment:
@@ -22,30 +22,56 @@ services:
 
   bucardo:
     build: bucardo
+    volumes:
+      - ./conf/pg_service.conf:/etc/postgresql-common/pg_service.conf
     command:
       - bash
       - -c
       - |
-        cat <<EOF | tee /etc/postgresql-common/pg_service.conf
-        [a]
-        host=$$PG_URL_A
-        user=$$PG_USER
-        password=$$PG_PASS
-        dbname=$$PG_DB
-
-        [b]
-        host=$$PG_URL_B
-        user=$$PG_USER
-        password=$$PG_PASS
-        dbname=$$PG_DB
-        EOF
-
-        psql service=a -c 'CREATE EXTENSION plperl;'
-        psql service=b -c 'CREATE EXTENSION plperl;'
+        bucardo add db A dbservice=a
+        bucardo add db B dbservice=b
+        # Inserted data after next line will replicate.
+        bucardo add sync migrate_db tables=all dbs=A,B
+        pg_dump service=a --schema=public --section=data | psql -q service=b
+        # bucardo start
+        # replication start
         bash
-    environment:
-      PG_URL_A: postgres9
-      PG_URL_B: postgres11
-      PG_USER:  postgres
-      PG_PASS:  postgres
-      PG_DB:    app
+        # tail -f /var/log/bucardo/log.bucardo
+        # bucardo stop
+        # pg_dump service=a --schema=public --section=post-data | psql -q service=b
+        # bucardo remove sync migrate_db
+        # bucardo remove db A B --force
+
+  psql: &psql
+    image: postgres:11
+    volumes:
+      - ./conf/pg_service.conf:/etc/postgresql-common/pg_service.conf
+      - ./sql:/sql
+    command: bash
+  
+  init:
+    <<: *psql
+    command:
+      - bash
+      - -c
+      - |
+        echo === a ===
+        psql service=a -c 'CREATE EXTENSION plperl;'
+        psql service=a < /sql/ddl.sql
+        psql service=a < /sql/init.sql
+        echo === b ===
+        psql service=b -c 'CREATE EXTENSION plperl;'
+        pg_dump service=a --schema=public --section=pre-data | psql -q service=b
+
+  clean:
+    <<: *psql
+    command:
+      - bash
+      - -c
+      - |
+        echo === a ===
+        psql service=a < /sql/clean.sql
+        psql service=a -c 'DROP EXTENSION plperl;'
+        echo === b ===
+        psql service=b < /sql/clean.sql
+        psql service=b -c 'DROP EXTENSION plperl;'

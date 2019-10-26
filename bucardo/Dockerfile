@@ -14,6 +14,7 @@ RUN \
 
 RUN \
      sed -i '1i''host all bucardo 127.0.0.1/32 trust' /etc/postgresql/11/main/pg_hba.conf \
+  && mkdir /var/run/bucardo \
   && service postgresql start \
   && su - postgres -c 'createuser -s bucardo' \
   && su - bucardo  -c 'bucardo install --batch' \
