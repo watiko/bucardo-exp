@@ -1,3 +1,5 @@
+CREATE EXTENSION plperl;
+
 CREATE SCHEMA public;
 
 create table users

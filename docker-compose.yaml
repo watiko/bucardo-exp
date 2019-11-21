@@ -56,7 +56,6 @@ services:
       - -c
       - |
         echo === a ===
-        psql service=a -c 'CREATE EXTENSION plperl;'
         psql service=a < /sql/ddl.sql
         psql service=a < /sql/seed.sql
         echo === b ===
@@ -71,7 +70,5 @@ services:
       - |
         echo === a ===
         psql service=a < /sql/clean.sql
-        psql service=a -c 'DROP EXTENSION IF EXISTS plperl;'
         echo === b ===
         psql service=b < /sql/clean.sql
-        psql service=b -c 'DROP EXTENSION IF EXISTS plperl;'
