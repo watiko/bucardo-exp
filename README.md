@@ -4,6 +4,7 @@
 
 ```bash
 $ docker-compose up -d postgres{9,11}
+$ docker-compose run --rm clean
 $ docker-compose run --rm init
 $ docker-compose run --rm bucardo
 docker#

@@ -71,7 +71,7 @@ services:
       - |
         echo === a ===
         psql service=a < /sql/clean.sql
-        psql service=a -c 'DROP EXTENSION plperl;'
+        psql service=a -c 'DROP EXTENSION IF EXISTS plperl;'
         echo === b ===
         psql service=b < /sql/clean.sql
-        psql service=b -c 'DROP EXTENSION plperl;'
+        psql service=b -c 'DROP EXTENSION IF EXISTS plperl;'

@@ -1,3 +1,5 @@
+CREATE SCHEMA public;
+
 create table users
 (
 	user_id serial not null
