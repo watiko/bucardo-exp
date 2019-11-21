@@ -24,6 +24,7 @@ services:
     build: bucardo
     volumes:
       - ./conf/pg_service.conf:/etc/postgresql-common/pg_service.conf
+      - ./sql:/sql
     command:
       - bash
       - -c
