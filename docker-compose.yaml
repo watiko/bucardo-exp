@@ -58,7 +58,7 @@ services:
         echo === a ===
         psql service=a -c 'CREATE EXTENSION plperl;'
         psql service=a < /sql/ddl.sql
-        psql service=a < /sql/init.sql
+        psql service=a < /sql/seed.sql
         echo === b ===
         psql service=b -c 'CREATE EXTENSION plperl;'
         pg_dump service=a --schema=public --section=pre-data | psql -q service=b
